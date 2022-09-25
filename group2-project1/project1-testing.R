@@ -82,7 +82,7 @@ igraph::edge_density(net, loops = T)
 
 ### TODO ###
 # egocentric network
-net.ego <- ego.extract(edges)
+net.ego <- sna::ego.extract(edges)
 # Error: vector memory exhausted (limit reached?)
 
 ### TODO ###
@@ -150,5 +150,119 @@ net.lgcliques
 # name vertices
 V(net)$name
 
-# plot
+## "astrocollab"
+# plot v1
 plot(net)
+
+# degree
+igraph::degree(net)
+
+# communities
+wc <- walktrap.community(net)
+
+plot(wc, net, vertex.size = 15, layout = layout.fruchterman.reingold)
+
+# simplify the graph by removing empty entries from the matrix 
+E(net)$weight <- rnorm(ecount(net))
+V(net)$weight <- rnorm(vcount(net))
+net[1:5, 1:9]
+
+sg <- induced.subgraph(net, which(V(net)$weight > 2.2))
+# plot(delete.vertices(sg, igraph::degree(sg)==0), edge.label = round(E(sg)$weight,3))
+# Error in delete.vertices(sg, igraph::degree(sg) == 1) : 
+# delete.vertices requires an argument of class network.
+plot(delete_vertices(sg, igraph::degree(sg)==0), edge.label = round(E(sg)$weight,3))
+
+histogram <- hist(igraph::degree(net))
+
+myGV <- igraph::V(net)
+myGV
+
+# analyze vertices for simplification
+
+# degree 0
+myGV0 <- igraph::V(net)[igraph::degree(net)==0]
+myGV0
+# none have degree 0
+
+# degree 1
+myGV1 <- igraph::V(net)[igraph::degree(net)==1]
+myGV2
+# 33 have degree 1
+
+# degree 2
+myGV2 <- igraph::V(net)[igraph::degree(net)==2]
+myGV2
+# 32 have degree 2
+
+# degree 10
+myGV10 <- igraph::V(net)[igraph::degree(net)==10]
+myGV10  
+# 212 have degree 10
+
+# less than degree 10
+myGVl10 <- igraph::V(net)[igraph::degree(net)<10]
+myGVl10
+# 2388 have degree less than 10
+
+# simplify
+# v2 - delete all nodes with degree <10
+net_v2 <- igraph::delete_vertices(net, myGVl10)
+net_v2
+plot(net_v2)
+
+# "fb" section
+
+is.simple(net_v2)
+edge_attr(net_v2)
+
+# v3 - use simplify to sum the edge weights 
+net_v3 = simplify(net_v2,
+                  remove.multiple = TRUE,
+                  edge.attr.comb = "sum"
+)
+
+plot(net_v3)
+# Warning message:
+# In v(graph) :
+# Non-positive edge weight found, ignoring all weights during graph layout.
+# still not readable
+
+vertex_attr(net)
+
+# check hist of v3
+hist_v3 <- hist(igraph::degree(net_v3))
+
+# remove nodes w degree >500 from v3
+myGVg500 <- igraph::V(net_v3)[igraph::degree(net_v3)>500]
+net_preview <- igraph::delete_vertices(net_v3, myGVg500)
+
+# check hist
+hist_v3preview <- hist(igraph::degree(net_preview))
+# most values under 50
+
+# remove nodes w degree <50 from v3
+myGVl50 <- igraph::V(net_v3)[igraph::degree(net_v3)<50]
+net_v4 <- igraph::delete_vertices(net_v3, myGVl50)
+
+hist_v4 <- hist(igraph::degree(net_v4))
+
+net_v4
+
+plot(net_v4)
+# still not readable 
+
+# remove nodes w degree <100 from v3 
+myGVl100 <- igraph::V(net_v3)[igraph::degree(net_v3)<100]
+net_v5 <- igraph::delete_vertices(net_v3, myGVl100)
+
+hist_v5 <- hist(igraph::degree(net_v5))
+
+net_v5
+
+plot(net_v5)
+
+## communities 
+sg <- induced.subgraph(astrocollab, which((astrocollab)$weight > 2.2))
+wc_v5 <- walktrap.community(net_v5)
+

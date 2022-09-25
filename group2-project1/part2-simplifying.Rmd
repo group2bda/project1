@@ -1,0 +1,106 @@
+---
+title: "part2-simplifying"
+author: "Matteo Sanchez-Dahl, Latifa Al Jlayel"
+date: "2022-09-21"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+hook_output <- knitr::knit_hooks$get("output")
+knitr::knit_hooks$set(output = function(x, options) {
+  if (!is.null(n <- options$out.lines)) {
+    x <- xfun::split_lines(x)
+    if (length(x) > n) {
+      # truncate the output
+      x <- c(head(x, n), "....\n")
+    }
+    x <- paste(x, collapse = "\n")
+  }
+  hook_output(x, options)
+})
+```
+
+# R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r, include=FALSE}
+setwd('/Users/matteosanchez-dahl/Desktop/F2022/CSCI 3907/projects/project1/group2-project1')
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r, echo=FALSE}
+library(igraph)
+library(sna)
+```
+
+```{r, out.lines = 10}
+nodes <- as.matrix(read.table('data_subelj_jdk/ent_subelj_jdk_jdk_class_name.txt'))
+edges <- as.matrix(read.table('data_subelj_jdk/out_subelj_jdk_jdk.txt', sep = "", header = F, skip = 2))
+edges
+```
+
+```{r}
+net <- graph_from_edgelist(edges, directed = TRUE)
+V(net)$name <- nodes
+net
+```
+
+```{r}
+histogram <- hist(igraph::degree(net))
+```
+
+```{r}
+sg2000 <- induced_subgraph(net, igraph::V(net)[igraph::degree(net)>2000])
+plot(sg2000)
+```
+```{r}
+net_2000 = simplify(sg2000,
+                      remove.multiple = TRUE,
+                      edge.attr.comb = "sum"
+                      )
+l = layout_in_circle(net_2000)
+plot(net_2000, layout = l)
+```
+
+```{r}
+sgl2000 <- induced_subgraph(net, igraph::V(net)[igraph::degree(net)<2000])
+histl200 <- hist(igraph::degree(sgl2000))
+```
+
+```{r}
+sg500 <- induced_subgraph(net, igraph::V(net)[igraph::degree(net)>500])
+plot(sg500)
+```
+
+```{r}
+net_simple = simplify(sg500,
+                      remove.multiple = TRUE,
+                      edge.attr.comb = "sum"
+                      )
+l <- layout_in_circle(net_simple)
+plot(net_simple, layout = l)
+```
+
+```{r}
+sg200 <- induced_subgraph(net, igraph::V(net)[igraph::degree(net)>200])
+plot(sg200)
+```
+
+```{r}
+
+```
+

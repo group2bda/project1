@@ -1,0 +1,126 @@
+---
+title: "part3-intrographanalytics"
+author: "Matteo Sanchez-Dahl, Latifa Al Jlayel"
+date: "2022-09-25"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+hook_output <- knitr::knit_hooks$get("output")
+knitr::knit_hooks$set(output = function(x, options) {
+  if (!is.null(n <- options$out.lines)) {
+    x <- xfun::split_lines(x)
+    if (length(x) > n) {
+      # truncate the output
+      x <- c(head(x, n), "....\n")
+    }
+    x <- paste(x, collapse = "\n")
+  }
+  hook_output(x, options)
+})
+```
+
+```{r, include=FALSE}
+setwd('/Users/matteosanchez-dahl/Desktop/F2022/CSCI 3907/projects/project1/group2-project1')
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r, echo=FALSE}
+library(igraph)
+library(sna)
+```
+
+```{r, out.lines = 10}
+nodes <- as.matrix(read.table('data_subelj_jdk/ent_subelj_jdk_jdk_class_name.txt'))
+edges <- as.matrix(read.table('data_subelj_jdk/out_subelj_jdk_jdk.txt', sep = "", header = F, skip = 2))
+```
+
+```{r}
+g <- graph_from_edgelist(edges, directed = TRUE)
+V(g)$name <- nodes
+net <- induced_subgraph(g, igraph::V(g)[igraph::degree(g)>500])
+```
+
+```{r}
+# get the vertices of a graph
+V(net)
+```
+
+
+```{r}
+# get the edges of a graph
+E(net)
+```
+
+```{r, out.lines = 10}
+# get the adjacency matrix
+net.adj <- as_adjacency_matrix(net)
+net.adj
+```
+
+## Analytic Functions 
+
+**gden {sna}**
+`gden(dat, g=NULL, diag=FALSE, mode="digraph", ignore.eval=FALSE)`
+`gden` computes the density of the graphs indicated by `g` in collection `dat`, adjusting for the type of graph in question.
+
+```{r}
+```
+An error that we encountered 
+
+```{r}
+is.igraph(net)
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```

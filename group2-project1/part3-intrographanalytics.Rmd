@@ -23,36 +23,56 @@ knitr::knit_hooks$set(output = function(x, options) {
 
 ```{r, include=FALSE}
 setwd('/Users/matteosanchez-dahl/Desktop/F2022/CSCI 3907/projects/project1/group2-project1')
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
-```{r, echo=FALSE}
 library(igraph)
 library(sna)
 ```
 
+# Chapter 3. Results 
+
+## 3.1 Introduction to Graph Analytics Outputs
+
+### Import Data
+
+Here we import the data in the same manner as before.
+
 ```{r, out.lines = 10}
 nodes <- as.matrix(read.table('data_subelj_jdk/ent_subelj_jdk_jdk_class_name.txt'))
-edges <- as.matrix(read.table('data_subelj_jdk/out_subelj_jdk_jdk.txt', sep = "", header = F, skip = 2))
+edges <- as.matrix(read.table('data_subelj_jdk/out_subelj_jdk_jdk.txt', sep = "", skip = 2))
+edges
 ```
 
+Here we convert the edge list to an igraph object by using the **graph_from_edgelist( )** function. We pass in the edge list and indicate that the graph is directed. Using th information from the simplification process, we create subgraphs of the 44 nodes that have a degree greater than 500.  We make one version of the graph with numbers as vertex names and another with the corresponding classes.
+
 ```{r}
+g_num <- graph_from_edgelist(edges, directed = TRUE)
+net_num <- induced_subgraph(g_num, igraph::V(g_num)[igraph::degree(g_num)>500])
+
+# convert the edgelist to an igraph object
 g <- graph_from_edgelist(edges, directed = TRUE)
+
+# named nodes
 V(g)$name <- nodes
+
+# create a graph of the simplified network
 net <- induced_subgraph(g, igraph::V(g)[igraph::degree(g)>500])
+net
 ```
+
+Here we use the **V( )** function to create a vertex sequence containing all vertices of the graph. The results confirm the 44 vertices we selected. 
 
 ```{r}
 # get the vertices of a graph
 V(net)
 ```
 
+Here we use the **E( )** function to create an edge sequence containing all the edges in the graph. The results indicate that the graph contains more than one edge between nodes, as we desired. 
 
 ```{r}
 # get the edges of a graph
 E(net)
 ```
+
+Here we use **as_adjacency_matrix( )** function to get the adjacency matrix of the graph. 
 
 ```{r, out.lines = 10}
 # get the adjacency matrix
@@ -60,18 +80,492 @@ net.adj <- as_adjacency_matrix(net)
 net.adj
 ```
 
-## Analytic Functions 
+<br>
 
-**gden {sna}**
-`gden(dat, g=NULL, diag=FALSE, mode="digraph", ignore.eval=FALSE)`
-`gden` computes the density of the graphs indicated by `g` in collection `dat`, adjusting for the type of graph in question.
+### Analytic Functions 
 
-```{r}
+<br>
+
+#### Density 
+
+Here we use the **gden( )** function to compute the density of the graph. 
+
+An error we encountered here is that the input must be an adjacency matrix/array, edgelist matrix, network, or sparse matrix, or list thereof. Thus, we used the **as_edgelist( )** function to convert the graph to an edge list. 
+
+Another error we encountered when using the graph that has the classes assigned as vertex names is that one of the functions that **gden( )** utilizes doesn't accept character type variables as arguments.
+
+Ultimately, we passed the edge list of numbers into **gden( )**, and the string "digraph" to indicate that the edges of the graph should be interpreted as directed. 
+
+```{r, out.lines = 10}
+# create edge list
+# calculate density of directed graph
+net.density = gden(as_edgelist(net_num), mode = "digraph")
+net.density
 ```
-An error that we encountered 
+
+<br>
+
+### Edge Density
+
+Here we use the **edge_density( )** function to calculate the density of the graph, which is the ratio of the number of edges and the number of possible edges.
 
 ```{r}
-is.igraph(net)
+# edge density 
+igraph::edge_density(net)
+```
+
+Here we explicitly state that self loops should be considered to be possible. 
+
+```{r}
+# remove self-loops
+igraph::edge_density(net, loops = T)
+```
+
+<br>
+
+### Egocentric Network Analysis
+
+Here we use the **ego.extract( )** function to obtain a list containing the adjacency matrices for the ego nets of each vertex in the graph.
+
+An error we encountered was that the input must be an adjacency matrix/array, network, or list. Thus, we used the **as_edgelist( )** function to convert the graph to an edge list. 
+
+```{r}
+# egocentric network
+net.ego <- sna::ego.extract(as_edgelist(net))
+```
+
+Here we print the matrix for vertex 1.
+
+```{r, out.lines = 10}
+net.ego[1]
+```
+
+Here we print the matrix for vertex 44.
+
+```{r, out.lines = 10}
+net.ego[44]
+```
+
+<br>
+
+### Degree
+
+Here we use the **degree( )** function to obtain the degree of each vertex in the graph, i.e. the number of adjacent edges
+
+```{r, out.lines = 10}
+# degree
+igraph::degree(net)
+```
+
+<br>
+
+### Betweeness Centrality
+
+Here we use the **centr_betw( )** function to obtain a named list with the following components: **res**, the node-level centrality scores; **centralization**, the graph level centrality index; and **theoretical_max**, the maximum theoretical graph level centralization score for a graph with the given number of vertices, using the same parameters.
+
+```{r}
+# betweeness centrality
+igraph::centr_betw(net)
+```
+
+<br>
+
+### Closeness Centrality
+
+Here we use the **centr_clo( )** function to obtain a named list with the following components: **res**, the node-level centrality scores; **centralization**, the graph level centrality index; and **theoretical_max**, the maximum theoretical graph level centralization score for a graph with the given number of vertices, using the same parameters.
+
+```{r}
+# closeness centrality
+igraph::centr_clo(net)
+```
+
+<br>
+
+### Shortest Paths 
+
+Here we use the ** ** function to obtain the shortest path between any two nodes in the graph.
+
+```{r, out.lines = 10}
+## shortest paths
+net.sp <- igraph::shortest.paths(net)
+net.sp
+```
+
+Here we use the **get.shortest.paths( )** function to obtain the actual shortest paths from a selected vertex We arbitrarily chose vertex 1.
+
+```{r, out.lines = 10}
+# get the actual paths (and not just their length) 
+igraph::get.shortest.paths(net,1)
+```
+
+<br>
+
+### Geodesic
+
+Here we use the **geodist( )** function
+
+An error we encountered was that the input must be an adjacency matrix/array, edgelist matrix, network, or sparse matrix, or list thereof. Thus, we used the **as_edgelist( )** function to convert the graph to an edge list. We used the net version with the vertex names as numbers to prevent the Warning: NAs introduced by coercion.
+
+```{r, out.lines = 10}
+# geodist
+net_num.gd <- geodist(as_edgelist(net_num))
+net_num.gd
+```
+
+<br>
+
+### Number of Paths
+
+Here we use multiply the adjacency matrix of the graph by itself to find the number of paths between two nodes
+
+```{r, out.lines = 10}
+net.np <- net.adj%*%net.adj
+net.np
+```
+
+<br>
+
+### Histogram of Degree of the Nodes
+
+Here we use the **hist( )** function to plot a histogram of the degrees of the nodes in the graph. 
+```{r}
+# histogram of the degree of the nodes
+hist(igraph::degree(net))
+```
+
+<br>
+
+### rgraph Example Functions 
+
+Here we use the **edge_density( )** function to calculate the density of the graph, which is the ratio of the number of edges and the number of possible edges.
+
+```{r}
+# edge density 
+igraph::edge_density(net)
+```
+
+Here we explicitly state that self loops should be considered to be possible. 
+
+```{r}
+# remove self-loops
+igraph::edge_density(net, loops = T)
+```
+
+Here we use the **diameter( )** function to obtain the diameter of the graph, i.e. the length of the longest geodesic.
+
+```{r}
+# diameter
+net.d <- igraph::diameter(net)
+net.d
+```
+
+Here we use the **max_cliques( )** function to find the max-cliques for node 13. Edge directions are ignored for maximal clique calculation.
+
+```{r, out.lines = 10}
+node13 <- c(13)
+net.13clique <- igraph::max_cliques(net, min = NULL, subset = node13)
+net.13clique
+```
+
+Here we use the **clique_num( )** function to find the size of the largest cliques. Edge directions are ignored for maximal clique calculation. 
+
+```{r, out.lines = 10}
+# largest cliques
+net.lgcliques <- igraph::clique_num(net)
+net.lgcliques
+```
+
+Exercise: Try to identify the cliques in the plot. Write them down.
+
+
+<br>
+
+### erdos.renyi.game Example Functions 
+
+Here we check the names of the vertices and confirm they're named with their corresponding classes.
+
+```{r, lines.out = 10}
+# name vertices
+V(net)$name
+```
+
+<br>
+
+### astrocollab Part 1 Example Functions 
+
+Here we create a copy of the graph to manipulate for this section and use the **plot( )** function to plot the graph.
+
+```{r}
+# copy graph to manipulate
+net_astro <- net
+
+#plot
+plot(net_astro)
+```
+
+Here we use the **degree( )** function to obtain the degree of each vertex in the graph, i.e. the number of adjacent edges
+
+```{r, out.lines = 10}
+# degree
+igraph::degree(net_astro)
+```
+
+<br>
+
+#### Communities
+
+Here we use the **** function
+
+```{r}
+# communities
+wc <- walktrap.community(net_astro)
+plot(wc, net_astro, vertex.size = 15, layout = layout.fruchterman.reingold)
+```
+
+<br>
+
+#### Simplify 
+
+Here we use the **rnorm( )** function to generate random deviates from a normal distribution with n observations, where n is the total number of edges in the graph; the result of which is obtained from the **ecount( )** function. The random deviates are assigned to the weights of the edges in the graph.
+
+Similarly, the **rnorm( )** function is utilized to generate random deviates from a normal distribution with n observations, where n is the total number of vertices in the graph; the result of which is obtained from the **vcount( )** function. The random deviates are assigned to the weights of the vertices in the graph.
+
+```{r, out.line = 10}
+# simplify the graph by removing empty entries from the matrix 
+E(net_astro)$weight <- rnorm(ecount(net_astro))
+V(net_astro)$weight <- rnorm(vcount(net_astro))
+net_astro[1:5, 1:9]
+```
+
+Here we can see the weights assigned to the vertices. These will change every time the code to assign weights to the vertices and edges is run because the process depends partially on randomly generated numbers
+
+```{r}
+V(net_astro)$weight
+```
+
+Here we use the **induced.subgraph( )** function to create a subgraph with only the vertices specified in the parameter. The **which( )** function is utilized to select the vertices from the graph with positive weights.
+
+In the rubric, the limit for the vertex weight is 2.2, however in this graph there are no vertices with weights that meet that criteria. Thus we set the limit to 0.0 to visualize the resulting plot. 
+
+```{r}
+sg <- induced.subgraph(net_astro, which(V(net_astro)$weight > 0.0))
+```
+
+In the rubric, the graph is simplified by eliminating empty entries from the matrix, however, in our case this was already done in the initial simplification step. From the earlier histogram of the degree of the nodes in the graph, we can see that the most of the nodes are of a degree less than 50. Thus we chose to eliminate those in this step.
+
+An error that we encountered was that **delete.vertices( )** requires an argument of class network, we instead utilized **delete_vertices( )** which accepts arguments of type igraph. We label the edges with their values rounded to three decimal places. 
+
+All edge weights were ignored during graph layout because non-positive edge weights were found.
+
+```{r, warning=FALSE}
+# simplify the graph by deleting vertices
+net_simp <- delete_vertices(sg, igraph::degree(sg)<50)
+plot(net_simp, edge.label = round(E(sg)$weight,3))
+```
+
+Here is the histogram of the degree of the remaining nodes.
+
+```{r}
+hist(igraph::degree(net_simp))
+```
+
+<br>
+
+### NCA Football Conference Example Functions 
+
+Here we create a copy of the graph original to manipulate for this section.
+
+```{r}
+# copy graph to manipulate
+net_fb <- net
+```
+
+Here we use the **vertex_attr( )** function to query the vertex attributes of the graph.
+
+```{r}
+vertex_attr(net_fb)
+```
+
+Here we use the **as_adjacency_matrix( )** function to obtain the adjacency matrix reprsesentation of the graph.
+
+```{r, out.lines = 10}
+adjmatrix <- as_adjacency_matrix(net_fb)
+adjmatrix
+```
+
+Here we use the **plot( )** function to plot the graph.
+
+The graph is difficult to read due to obscruction.
+
+```{r}
+#plot
+plot(net_fb)
+```
+
+Here we use the **rnorm( )**, **ecount( )**,  and **vcount( )** functions to assign weights to the vertices and edges of the graph in a similar fashion as before. 
+
+```{r, out.line = 10}
+# simplify the graph by removing empty entries from the matrix 
+E(net_fb)$weight <- rnorm(ecount(net_fb))
+V(net_fb)$weight <- rnorm(vcount(net_fb))
+net_fb[1:5, 1:9]
+```
+
+Here we use the **induced.subgraph( )** function to create a subgraph with only the vertices specified in the parameter. The **which( )** function is utilized to select the vertices from the graph with positive weights.
+
+In the rubric, the limit for the vertex weight is 0.7, however we set the limit to 0.0 to select all vertices with positive weights. 
+
+We label the edges with their values rounded to three decimal places. 
+
+All edge weights were ignored during graph layout because non-positive edge weights were found.
+
+```{r, warning=FALSE}
+sg_fb <- induced.subgraph(net_fb, which(V(net_fb)$weight > 0.0))
+plot(sg_fb, edge.label = round(E(sg_fb)$weight, 3))
+```
+
+Here we use the **is.simple( )** function to check if our graph is simple.
+
+The results confirm what we already know, that the graph is not simple, as we selected to keep multiple edges between nodes. 
+
+```{r}
+is.simple(net_fb)
+```
+
+Here we use the **simplify( )** function to simplify the graph. 
+
+```{r}
+# simplify the graph
+net_sfb <- simplify(net_fb)
+is.simple(net_sfb)
+net_sfb
+```
+
+Here we use the **plot( )** function to plot the simiplified graph.
+
+All edge weights were ignored during graph layout because non-positive edge weights were found.
+
+```{r, warning=FALSE}
+plot(net_sfb)
+```
+<br>
+
+#### Communities
+
+Here we use the ** ** function
+
+An error we encountered while calculating the communities was that the weight vector must be non-negative. 
+
+```{r, out.lines = 10}
+# remove edges with negative weight
+net_fbpose <- delete_edges(net_fb, which(E(net_fb)$weight < 0.0)) 
+
+# find communities 
+wc <- walktrap.community(net_fbpose)
+
+# plot
+plot (wc,net_fbpose, vertex.size=0.5, layout=layout.fruchterman.reingold)
+```
+Here we use the ** ** function
+
+```{r}
+# remove negative weights from simplified graph
+net_sfbpose <- delete_edges(net_sfb, which(E(net_sfb)$weight < 0.0))
+
+# find communities in simplified graph
+wcsfb <- walktrap.community(net_sfbpose)
+
+# plot
+plot (wcsfb, net_sfbpose, vertex.size=0.5, layout=layout.fruchterman.reingold)
+```
+```{r}
+# remove isolates
+net_ssfb <- delete_vertices(net_sfbpose, igraph::V(net_sfbpose)[igraph::degree(net_sfbpose)<2])
+  
+  #induced.subgraph(net_sfbpose,
+                             #igraph::V(net_sfbpose)[igraph::degree(net_sfbpose)>0])
+
+# find communities in simplified graph
+wcssfb <- walktrap.community(net_ssfb)
+
+# plot
+plot (wcssfb, net_ssfb, vertex.size=0.5, layout=layout.fruchterman.reingold)
+```
+How does this differ from the wc plot? See where different schools are in the two plots
+
+How to define what is modular?
+
+
+<br>
+
+#### Alpha Centrality 
+
+Here we use the **alpha_centrality( )** function 
+
+```{r}
+acfb <- alpha_centrality(net_fb)
+acfb
+```
+
+Here we use the **alpha_centrality( )** function 
+
+```{r}
+acsfb <- alpha_centrality(net_sfb)
+acsfb
+```
+
+
+
+Here we use the ** ** function
+Here we use the ** ** function
+Here we use the ** ** function
+Here we use the ** ** function
+Here we use the ** ** function
+Here we use the ** ** function
+Here we use the ** ** function
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r, include=FALSE}
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
 ```
 ```{r}
 

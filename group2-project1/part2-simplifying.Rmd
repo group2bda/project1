@@ -60,13 +60,27 @@ net
 ```
 
 ```{r}
+plot(net)
+```
+
+In this histogram, 6423 nodes fall into the first bucket. That means they have degree less than 2000. From this histogram we can tell that the nodes in the network differ greatly in terms of their degree. From documentation about the data set (http://konect.cc/networks/subelj_jdk/), we know that the the node with the maximum degree in the network has a degree (dmax) of 32,530. It's difficult to get a good sense of the data set will all the nodes, so we want to explore sub-graphs of the network to further elucidate which nodes to focus our analysis on. We must choose the handful of nodes in the network that we can analyze such that those nodes retain the most important information in the data set and we can begin to make generalizations about the entire data set from the results of analyzing these nodes.
+
+```{r}
 histogram <- hist(igraph::degree(net))
 ```
+
+Here we make a subgraph of the nodes that have a degree higher than 2000. There are 11 nodes that meet this criteria. We can conclude these nodes are the most important nodes in the software class dependency network of the JDK 1.6.0.7 framework since they have the highest degrees in the entire network, i.e. many classes depend on them since an edge between nodes indicates there exists a dependency between the two classes. This makes sense since a String class is needed to compile the source code into executable files with binary machine code and Java is an OOP language, which means the Object class is key to its functionality.
+
+EDIT:
+We can conclude these 4 nodes are some of the most important nodes in the software class dependency network of the JDK 1.6.0.7 framework since they remain after simplifying the graph with the weights of the vertices. They also have some of the highest degree centrality. This makes sense since a String class is needed to compile the source code into executable files with binary machine code and Java is an OOP language, which means the Object class is key to its functionality.
 
 ```{r}
 sg2000 <- induced_subgraph(net, igraph::V(net)[igraph::degree(net)>2000])
 plot(sg2000)
 ```
+
+Here we use the simplify( ) function to create a new attribute by summing the old ones. We plot the resulting graph with the circle layout to better visualize how these core 11 nodes are connected to each out.
+
 ```{r}
 net_2000 = simplify(sg2000,
                       remove.multiple = TRUE,
@@ -76,15 +90,21 @@ l = layout_in_circle(net_2000)
 plot(net_2000, layout = l)
 ```
 
+Here we make a subgraph of the 6423 nodes that have a degree less than 2000 to better investigate what the network looks like without the 11 highest degree nodes. Form the histogram, we can observe that the majority of the nodes (6108) have less than 100 degrees, 6323 nodes have a degree less than 200, and 6390 nodes have degree lass than 500.
+
 ```{r}
 sgl2000 <- induced_subgraph(net, igraph::V(net)[igraph::degree(net)<2000])
 histl200 <- hist(igraph::degree(sgl2000))
 ```
 
+Here we make a subgraph of all the nodes in the network that have a degree greater than 500. 44 nodes in the network meet this criteria. 
+
 ```{r}
 sg500 <- induced_subgraph(net, igraph::V(net)[igraph::degree(net)>500])
 plot(sg500)
 ```
+
+Here we use the simplify( ) function to create a new attribute by summing the old ones. We plot the resulting graph with the circle layout to better visualize how these core 44 nodes are connected to each out.
 
 ```{r}
 net_simple = simplify(sg500,
@@ -95,12 +115,24 @@ l <- layout_in_circle(net_simple)
 plot(net_simple, layout = l)
 ```
 
+
+
 ```{r}
 sg200 <- induced_subgraph(net, igraph::V(net)[igraph::degree(net)>200])
 plot(sg200)
 ```
-
 ```{r}
-
+l <- layout_in_circle(sg200)
+plot(sg200, layout = l)
 ```
 
+final simplified data used for subsequent section
+```{r}
+plot(sg500)
+```
+
+
+```{r}
+l <- layout_in_circle(sg500)
+plot(sg500, layout = l)
+```

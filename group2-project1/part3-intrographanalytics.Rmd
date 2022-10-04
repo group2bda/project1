@@ -37,7 +37,9 @@ Here we import the data in the same manner as before.
 
 ```{r, out.lines = 10}
 nodes <- as.matrix(read.table('data_subelj_jdk/ent_subelj_jdk_jdk_class_name.txt'))
-edges <- as.matrix(read.table('data_subelj_jdk/out_subelj_jdk_jdk.txt', sep = "", skip = 2))
+edges <- as.matrix(read.table('data_subelj_jdk/out_subelj_jdk_jdk.txt', 
+                              sep = "", 
+                              skip = 2))
 edges
 ```
 
@@ -105,7 +107,7 @@ net.density
 
 <br>
 
-### Edge Density
+#### Edge Density
 
 Here we use the **edge_density( )** function to calculate the density of the graph, which is the ratio of the number of edges and the number of possible edges.
 
@@ -123,7 +125,7 @@ igraph::edge_density(net, loops = T)
 
 <br>
 
-### Egocentric Network Analysis
+#### Egocentric Network Analysis
 
 Here we use the **ego.extract( )** function to obtain a list containing the adjacency matrices for the ego nets of each vertex in the graph.
 
@@ -337,7 +339,7 @@ V(net_astro)$weight <- rnorm(vcount(net_astro))
 net_astro[1:5, 1:9]
 ```
 
-Here we can see the weights assigned to the vertices. These will change every time the code to assign weights to the vertices and edges is run because the process depends partially on randomly generated numbers
+Here we can see the weights assigned to the vertices. These will change every time the code to assign weights to the vertices and edges is run because the process depends partially on randomly generated numbers.
 
 ```{r}
 V(net_astro)$weight
@@ -480,17 +482,18 @@ plot (wcsfb, net_sfbpose, vertex.size=0.5, layout=layout.fruchterman.reingold)
 ```
 ```{r}
 # remove isolates
-net_ssfb <- delete_vertices(net_sfbpose, igraph::V(net_sfbpose)[igraph::degree(net_sfbpose)<2])
+# net_ssfb <- delete_vertices(net_sfbpose, igraph::V(net_sfbpose)[igraph::degree(net_sfbpose)<2])
   
   #induced.subgraph(net_sfbpose,
                              #igraph::V(net_sfbpose)[igraph::degree(net_sfbpose)>0])
 
 # find communities in simplified graph
-wcssfb <- walktrap.community(net_ssfb)
+# wcssfb <- walktrap.community(net_ssfb)
 
 # plot
-plot (wcssfb, net_ssfb, vertex.size=0.5, layout=layout.fruchterman.reingold)
+# plot (wcssfb, net_ssfb, vertex.size=0.5, layout=layout.fruchterman.reingold)
 ```
+
 How does this differ from the wc plot? See where different schools are in the two plots
 
 How to define what is modular?
@@ -515,6 +518,11 @@ acsfb
 ```
 
 
+<br>
+
+###  astrocollab Part 2 Example Functions
+
+###
 
 Here we use the ** ** function
 Here we use the ** ** function
